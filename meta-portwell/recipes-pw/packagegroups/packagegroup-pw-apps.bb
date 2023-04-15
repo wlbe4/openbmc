@@ -16,31 +16,31 @@ PROVIDES += "virtual/obmc-fan-mgmt"
 PROVIDES += "virtual/obmc-flash-mgmt"
 PROVIDES += "virtual/obmc-system-mgmt"
 
-RPROVIDES_${PN}-chassis += "virtual-obmc-chassis-mgmt"
-RPROVIDES_${PN}-fans += "virtual-obmc-fan-mgmt"
-RPROVIDES_${PN}-flash += "virtual-obmc-flash-mgmt"
-RPROVIDES_${PN}-system += "virtual-obmc-system-mgmt"
+RPROVIDES:${PN}-chassis += "virtual-obmc-chassis-mgmt"
+RPROVIDES:${PN}-fans += "virtual-obmc-fan-mgmt"
+RPROVIDES:${PN}-flash += "virtual-obmc-flash-mgmt"
+RPROVIDES:${PN}-system += "virtual-obmc-system-mgmt"
 
-SUMMARY_${PN}-chassis = "Portwell Chassis"
-RDEPENDS_${PN}-chassis = " \
+SUMMARY:${PN}-chassis = "Portwell Chassis"
+RDEPENDS:${PN}-chassis = " \
         x86-power-control \
         "
 
-SUMMARY_${PN}-fans = "Portwell Fans"
-RDEPENDS_${PN}-fans = " \
+SUMMARY:${PN}-fans = "Portwell Fans"
+RDEPENDS:${PN}-fans = " \
         phosphor-pid-control \
         "
 
-SUMMARY_${PN}-flash = "Portwell Flash"
-RDEPENDS_${PN}-flash = " \
+SUMMARY:${PN}-flash = "Portwell Flash"
+RDEPENDS:${PN}-flash = " \
         phosphor-software-manager \
         "
 
-SUMMARY_${PN}-system = "Portwell System"
-RDEPENDS_${PN}-system = " \
+SUMMARY:${PN}-system = "Portwell System"
+RDEPENDS:${PN}-system = " \
         entity-manager \
         bmcweb \
-        phosphor-webui \
+        webui-vue \
         ipmitool \
         phosphor-post-code-manager \
         phosphor-host-postd \

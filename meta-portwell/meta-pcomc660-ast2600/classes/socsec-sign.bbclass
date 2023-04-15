@@ -12,8 +12,8 @@ SOCSEC_SIGN_HELPER ?= ""
 # intersects the stack. The parameter below can be used to instruct
 # socsec to work in either mode (ommitting it throws a warning), but
 # newer (post v00.03.03) u-boot-aspeed-sdk need this set to false
-SOCSEC_SIGN_EXTRA_OPTS ?= "--stack_intersects_verification_region=false"
-DEPENDS += '${@oe.utils.conditional("SOCSEC_SIGN_ENABLE", "1", " socsec-native", "", d)}'
+#SOCSEC_SIGN_EXTRA_OPTS ?= "--stack_intersects_verification_region=false"
+#DEPENDS += '${@oe.utils.conditional("SOCSEC_SIGN_ENABLE", "1", " socsec-native", "", d)}'
 
 
 # Signs the SPL binary with a pre-established key
@@ -60,7 +60,7 @@ sign_spl() {
 }
 
 
-do_deploy_append() {
+do_deploy:append() {
     if [ "${SOCSEC_SIGN_ENABLE}" = "1" -a -n "${SPL_BINARY}" ] ; then
         sign_spl
     fi
