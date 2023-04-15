@@ -1,0 +1,100 @@
+# Sensor id
+0xe0: &fan_rpm_read
+  # Sensor type code is defined in IPMI spec Table 42-3
+  # Sensor type code 0x04: Fan
+  sensorType: 0x04
+  path: /xyz/openbmc_project/sensors/fan_tach/fan1
+  # Event/Reading type code is defined in IPMI spec Table 42-2
+  # Event/Reading type code 0x01: Threshold-based
+  sensorReadingType: 0x01
+  multiplierM: 1
+  offsetB: 0
+  bExp: 0
+  rExp: 0
+  scale: 0
+  unit: xyz.openbmc_project.Sensor.Value.Unit.RPMS
+  mutability: Mutability::Write|Mutability::Read
+  serviceInterface: org.freedesktop.DBus.Properties
+  readingType: readingData
+  sensorNamePattern: nameLeaf
+  interfaces:
+    xyz.openbmc_project.Sensor.Value:
+      Value:
+        Offsets:
+          0xFF:
+            type: double
+
+0xe1:
+  <<: *fan_rpm_read
+  path: /xyz/openbmc_project/sensors/fan_tach/fan2
+
+0xe8: &temperature
+  # Sensor type code 0x01: Temperature
+  sensorType: 0x01
+  path: /xyz/openbmc_project/sensors/temperature/local1
+  sensorReadingType: 0x01
+  multiplierM: 1
+  offsetB: 0
+  bExp: 0
+  rExp: 0
+  scale: 0
+  unit: xyz.openbmc_project.Sensor.Value.Unit.DegreesC
+  mutability: Mutability::Write|Mutability::Read
+  serviceInterface: org.freedesktop.DBus.Properties
+  readingType: readingData
+  sensorNamePattern: nameLeaf
+  interfaces:
+    xyz.openbmc_project.Sensor.Value:
+      Value:
+        Offsets:
+          0xFF:
+            type: double
+
+0xe9:
+  <<: *temperature
+  path: /xyz/openbmc_project/sensors/temperature/local2
+
+0xea:
+  <<: *temperature
+  path: /xyz/openbmc_project/sensors/temperature/remote1
+
+0xeb:
+  <<: *temperature
+  path: /xyz/openbmc_project/sensors/temperature/remote2
+
+0xf0: &voltage
+  # Sensor type code 0x02: Voltage
+  sensorType: 0x02
+  path: /xyz/openbmc_project/sensors/voltage/VCC3
+  sensorReadingType: 0x01
+  multiplierM: 1
+  offsetB: 0
+  bExp: 0
+  rExp: -3
+  scale: 0
+  unit: xyz.openbmc_project.Sensor.Value.Unit.Volts
+  serviceInterface: org.freedesktop.DBus.Properties
+  readingType: readingData
+  sensorNamePattern: nameLeaf
+  interfaces:
+    xyz.openbmc_project.Sensor.Value:
+      Value:
+        Offsets:
+          0xFF:
+            type: double
+
+0xf1:
+  <<: *voltage
+  path: /xyz/openbmc_project/sensors/voltage/VCC
+
+0xf2:
+  <<: *voltage
+  path: /xyz/openbmc_project/sensors/voltage/12V1
+
+0xf3:
+  <<: *voltage
+  path: /xyz/openbmc_project/sensors/voltage/3V_DUAL
+
+0xf4:
+  <<: *voltage
+  path: /xyz/openbmc_project/sensors/voltage/5VSB

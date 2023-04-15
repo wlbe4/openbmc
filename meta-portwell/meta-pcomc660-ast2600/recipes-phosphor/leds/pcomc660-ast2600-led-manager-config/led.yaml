@@ -1,0 +1,9 @@
+#BmcBooted:
+#    bmc_alive:
+#        Action: 'Blink'
+#        DutyOn: 50
+#        Period: 0
+
+enclosure_identify:
+    bmc_alive:
+        Action: 'On'

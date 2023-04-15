@@ -1,0 +1,29 @@
+[
+    {
+        "path": "system/chassis",
+        "endpoints":
+        [
+            {
+                "types":
+                {
+                    "rType": "chassis",
+                    "fType": "all_sensors"
+                },
+                "paths":
+                [
+                    "/xyz/openbmc_project/sensors/fan_tach/fan1",
+                    "/xyz/openbmc_project/sensors/fan_tach/fan2",
+                    "/xyz/openbmc_project/sensors/temperature/local1",
+                    "/xyz/openbmc_project/sensors/temperature/remote1",
+                    "/xyz/openbmc_project/sensors/temperature/local2",
+                    "/xyz/openbmc_project/sensors/temperature/remote2",
+                    "/xyz/openbmc_project/sensors/voltage/VCC3",
+                    "/xyz/openbmc_project/sensors/voltage/VCC",
+                    "/xyz/openbmc_project/sensors/voltage/12V1",
+                    "/xyz/openbmc_project/sensors/voltage/3V_DUAL",
+                    "/xyz/openbmc_project/sensors/voltage/5VSB"
+                ]
+            }
+        ]
+    }
+]

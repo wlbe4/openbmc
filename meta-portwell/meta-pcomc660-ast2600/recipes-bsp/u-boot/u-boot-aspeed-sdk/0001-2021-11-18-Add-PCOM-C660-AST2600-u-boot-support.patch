@@ -1,0 +1,371 @@
+From fe3049ee2b4e847a72002e18e4e17d891e005894 Mon Sep 17 00:00:00 2001
+From: nicklu <nick.lu@portwell.com.tw>
+Date: Thu, 18 Nov 2021 14:58:37 +0800
+Subject: [PATCH] 2021/11/18 Add PCOM-C660-AST2600 support.
+
+---
+ arch/arm/dts/ast2600a1-evb.dts              | 126 +++++++++-----------
+ arch/arm/mach-aspeed/ast2600/board_common.c |   9 +-
+ arch/arm/mach-aspeed/ast2600/platform.S     |  12 +-
+ board/aspeed/evb_ast2600/evb_ast2600.c      |   1 +
+ 4 files changed, 75 insertions(+), 73 deletions(-)
+
+diff --git a/arch/arm/dts/ast2600a1-evb.dts b/arch/arm/dts/ast2600a1-evb.dts
+index f83c8bab4b..21f6a75f65 100644
+--- a/arch/arm/dts/ast2600a1-evb.dts
++++ b/arch/arm/dts/ast2600a1-evb.dts
+@@ -16,7 +16,6 @@
+ 	};
+ 
+ 	aliases {
+-		mmc0 = &emmc_slot0;
+ 		mmc1 = &sdhci_slot0;
+ 		mmc2 = &sdhci_slot1;
+ 		spi0 = &fmc;
+@@ -48,22 +47,21 @@
+ };
+ 
+ &wdt1 {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &wdt2 {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &wdt3 {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &mdio {
+ 	status = "okay";
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <	&pinctrl_mdio1_default &pinctrl_mdio2_default
+-			&pinctrl_mdio3_default &pinctrl_mdio4_default>;
++	pinctrl-0 = <	&pinctrl_mdio1_default>;
+ 	#address-cells = <1>;
+ 	#size-cells = <0>;
+ 	ethphy0: ethernet-phy@0 {
+@@ -84,23 +82,24 @@
+ };
+ 
+ &mac0 {
+-	status = "okay";
++	status = "disabled";
+ 	phy-mode = "rgmii";
+ 	phy-handle = <&ethphy0>;
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_rgmii1_default>;
++	pinctrl-0 = <&pinctrl_rgmii3_default &pinctrl_mac1link_default>;
+ };
+ 
+ &mac1 {
+-	status = "okay";
++	status = "disabled";
+ 	phy-mode = "rgmii";
+ 	phy-handle = <&ethphy1>;
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_rgmii2_default>;
++	pinctrl-0 = <&pinctrl_rgmii2_default &pinctrl_mac2link_default>;
+ };
+ 
+ &mac2 {
+ 	status = "okay";
++	reg = <0x1e670000 0x180>, <0x1e650000 0x4>;
+ 	phy-mode = "rgmii";
+ 	phy-handle = <&ethphy2>;
+ 	pinctrl-names = "default";
+@@ -109,10 +108,11 @@
+ 
+ &mac3 {
+ 	status = "okay";
+-	phy-mode = "rgmii";
+-	phy-handle = <&ethphy3>;
++	reg = <0x1e690000 0x180>, <0x1e650000 0x4>;
++	phy-mode = "NC-SI";
++	use-ncsi;
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_rgmii4_default &pinctrl_mac4link_default>;	
++	pinctrl-0 = <&pinctrl_rmii4_default &pinctrl_rmii4rclk_default>;	
+ };
+ 
+ &fmc {
+@@ -122,27 +122,19 @@
+ 	pinctrl-0 = <&pinctrl_fmcquad_default>;
+ 
+ 	flash@0 {
+-		compatible = "spi-flash", "sst,w25q256";
++		compatible = "spi-flash", "st,m25p";
+ 		status = "okay";
+ 		spi-max-frequency = <50000000>;
+-		spi-tx-bus-width = <4>;
+-		spi-rx-bus-width = <4>;
++		spi-tx-bus-width = <1>;
++		spi-rx-bus-width = <1>;
+ 	};
+ 
+ 	flash@1 {
+-		compatible = "spi-flash", "sst,w25q256";
++		compatible = "spi-flash", "st,m25p";
+ 		status = "okay";
+ 		spi-max-frequency = <50000000>;
+-		spi-tx-bus-width = <4>;
+-		spi-rx-bus-width = <4>;
+-	};
+-
+-	flash@2 {
+-		compatible = "spi-flash", "sst,w25q256";
+-		status = "okay";
+-		spi-max-frequency = <50000000>;
+-		spi-tx-bus-width = <4>;
+-		spi-rx-bus-width = <4>;
++		spi-tx-bus-width = <1>;
++		spi-rx-bus-width = <1>;
+ 	};
+ };
+ 
+@@ -150,29 +142,27 @@
+ 	status = "okay";
+ 
+ 	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_spi1_default &pinctrl_spi1abr_default
+-			&pinctrl_spi1cs1_default &pinctrl_spi1wp_default
+-			&pinctrl_spi1wp_default &pinctrl_spi1quad_default>;
++	pinctrl-0 = <&pinctrl_spi1_default>;
+ 
+ 	flash@0 {
+ 		compatible = "spi-flash", "sst,w25q256";
+ 		status = "okay";
+ 		spi-max-frequency = <50000000>;
+-		spi-tx-bus-width = <4>;
+-		spi-rx-bus-width = <4>;
++		spi-tx-bus-width = <1>; 
++		spi-rx-bus-width = <1>;
+ 	};
+ 
+ 	flash@1 {
+ 		compatible = "spi-flash", "sst,w25q256";
+ 		status = "okay";
+ 		spi-max-frequency = <50000000>;
+-		spi-tx-bus-width = <4>;
+-		spi-rx-bus-width = <4>;
++		spi-tx-bus-width = <1>;
++		spi-rx-bus-width = <1>;
+ 	};
+ };
+ 
+ &spi2 {
+-	status = "okay";
++	status = "disabled";
+ 
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_spi2_default &pinctrl_spi2cs1_default
+@@ -188,7 +178,7 @@
+ 
+ 	flash@1 {
+ 		compatible = "spi-flash", "sst,w25q256";
+-		status = "okay";
++		status = "disabled";
+ 		spi-max-frequency = <50000000>;
+ 		spi-tx-bus-width = <4>;
+ 		spi-rx-bus-width = <4>;
+@@ -196,27 +186,13 @@
+ 
+ 	flash@2 {
+ 		compatible = "spi-flash", "sst,w25q256";
+-		status = "okay";
++		status = "disabled";
+ 		spi-max-frequency = <50000000>;
+ 		spi-tx-bus-width = <4>;
+ 		spi-rx-bus-width = <4>;
+ 	};
+ };
+ 
+-&emmc {
+-	u-boot,dm-pre-reloc;
+-	timing-phase = <0x700ff>;
+-};
+-
+-&emmc_slot0 {
+-	u-boot,dm-pre-reloc;
+-	status = "okay";
+-	bus-width = <4>;
+-	pinctrl-names = "default";
+-	pinctrl-0 = <&pinctrl_emmc_default>;
+-	sdhci-drive-type = <1>;
+-};
+-
+ &sdhci {
+ 	timing-phase = <0xc6ffff>;
+ };
+@@ -224,23 +200,41 @@
+ &sdhci_slot0 {
+ 	status = "okay";
+ 	bus-width = <4>;
+-	pwr-gpios = <&gpio0 ASPEED_GPIO(V, 0) GPIO_ACTIVE_HIGH>;
+-	pwr-sw-gpios = <&gpio0 ASPEED_GPIO(V, 1) GPIO_ACTIVE_HIGH>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_sd1_default>;
+ 	sdhci-drive-type = <1>;
+ };
+ 
+ &sdhci_slot1 {
+-	status = "okay";
++	status = "disabled";
+ 	bus-width = <4>;
+-	pwr-gpios = <&gpio0 ASPEED_GPIO(V, 2) GPIO_ACTIVE_HIGH>;
+-	pwr-sw-gpios = <&gpio0 ASPEED_GPIO(V, 3) GPIO_ACTIVE_HIGH>;
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_sd2_default>;
+ 	sdhci-drive-type = <1>;
+ };
+ 
++&i2c1 {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c2_default>;
++};
++
++&i2c2 {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c3_default>;
++};
++
++
++&i2c3 {
++	status = "okay";
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_i2c4_default>;
++};
++
+ &i2c4 {
+ 	status = "okay";
+ 
+@@ -263,7 +257,7 @@
+ };
+ 
+ &i2c7 {
+-	status = "okay";
++	status = "disabled";
+ 
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_i2c8_default>;
+@@ -277,29 +271,19 @@
+ };
+ 
+ &pcie_bridge1 {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &h2x {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+-#if 0
+-&fsim0 {
+-	status = "okay";
+-};
+-
+-&fsim1 {
+-	status = "okay";
+-};
+-#endif
+-
+ &ehci1 {
+ 	status = "okay";
+ };
+ 
+ &display_port {
+-	status = "okay";
++	status = "disabled";
+ };
+ 
+ &scu {
+@@ -318,5 +302,5 @@
+ };
+ 
+ &hace {
+-	status = "okay";
++	status = "disabled";
+ };
+diff --git a/arch/arm/mach-aspeed/ast2600/board_common.c b/arch/arm/mach-aspeed/ast2600/board_common.c
+index 99a9e1273a..0185bd61fb 100644
+--- a/arch/arm/mach-aspeed/ast2600/board_common.c
++++ b/arch/arm/mach-aspeed/ast2600/board_common.c
+@@ -58,7 +58,7 @@ __weak int board_init(void)
+ 	int ret;
+ 	u64 rev_id;
+ 	u32 tmp_val;
+-
++	
+ 	/* disable address remapping for A1 to prevent secure boot reboot failure */
+ 	rev_id = readl(ASPEED_REVISION_ID0);
+ 	rev_id = ((u64)readl(ASPEED_REVISION_ID1) << 32) | rev_id;
+@@ -77,6 +77,13 @@ __weak int board_init(void)
+ #ifdef ASPEED_RMII_DAUGHTER_CARD
+ 	reset_eth_phy();
+ #endif
++
++	/* Enable pass-through function */
++	tmp_val=0x80;
++	writel(tmp_val, 0x1e6e251c);
++	tmp_val=0x0F000000;
++	writel(tmp_val, 0x1e6e24bc);
++
+ 	/*
+ 	 * Loop over all MISC uclass drivers to call the comphy code
+ 	 * and init all CP110 devices enabled in the DT
+diff --git a/arch/arm/mach-aspeed/ast2600/platform.S b/arch/arm/mach-aspeed/ast2600/platform.S
+index f96ef1f0da..b018f861a0 100644
+--- a/arch/arm/mach-aspeed/ast2600/platform.S
++++ b/arch/arm/mach-aspeed/ast2600/platform.S
+@@ -235,6 +235,16 @@ wait_lock:
+ 	str	r1, [r0]
+ 
+ 2:
++	/* Fix UART1 route problem on A3 */
++	ldr     r0, =0x1e789098
++	movw    r1, #0x0a30
++	movt    r1, #0x0000
++	str     r1, [r0]
++
++	ldr     r0, =0x1e78909c
++	movw    r1, #0x0000
++	movt    r1, #0x0000
++	str     r1, [r0]
+ 	/* MMIO decode setting */
+ 	ldr	r0, =AST_SCU_MMIO_DEC_SET
+ 	mov	r1, #0x2000
+@@ -277,7 +287,7 @@ skip_fill_wip_bit:
+ 	ldr	r1, =AST_FMC_WDT1_CTRL_MODE
+ 	str	r0, [r1]
+ 
+-#if 0
++#if 1
+ 	/* disable UART-based SoC Debug Interface UART5 and P2A bridge*/
+ 	ldr     r0, =AST_SCU_DEBUG_CTRL
+ 	ldr     r1, [r0]
+diff --git a/board/aspeed/evb_ast2600/evb_ast2600.c b/board/aspeed/evb_ast2600/evb_ast2600.c
+index 5577ae5ddc..d15ceaf319 100644
+--- a/board/aspeed/evb_ast2600/evb_ast2600.c
++++ b/board/aspeed/evb_ast2600/evb_ast2600.c
+@@ -32,6 +32,7 @@
+ /* HICRB Bits */
+ #define HICRB_EN80HSGIO (1 << 13)	/* Enable 80hSGIO */
+ 
++#define SCU4BC 0x4BC
+ static void __maybe_unused port80h_snoop_init(void)
+ {
+ 	uint32_t value;
+-- 
+2.17.1
+

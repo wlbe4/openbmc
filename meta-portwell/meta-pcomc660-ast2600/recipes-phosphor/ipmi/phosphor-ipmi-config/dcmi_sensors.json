@@ -1,0 +1,12 @@
+{
+    "inlet": [
+    ],
+    "baseboard": [
+        {"instance": 1, "dbus": "/xyz/openbmc_project/sensors/temperature/local1", "record_id": 232},
+        {"instance": 2, "dbus": "/xyz/openbmc_project/sensors/temperature/local2", "record_id": 233},
+        {"instance": 3, "dbus": "/xyz/openbmc_project/sensors/temperature/remote1", "record_id": 234},
+        {"instance": 4, "dbus": "/xyz/openbmc_project/sensors/temperature/remote2", "record_id": 235}
+    ],
+    "cpu": [
+    ]
+}
