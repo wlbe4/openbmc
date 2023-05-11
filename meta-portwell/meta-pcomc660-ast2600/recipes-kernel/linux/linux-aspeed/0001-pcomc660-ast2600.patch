@@ -1,10 +1,10 @@
-From 0af2af5d617fd21350ce12f1a4af49743fba60aa Mon Sep 17 00:00:00 2001
-From: nicklu <nick.lu@portwell.com.tw>
-Date: Thu, 18 Nov 2021 14:49:09 +0800
-Subject: [PATCH] 2021/11/18 Add Pcom-C660-AST2600 support.
+From a89399a5267ad871f712e00a34862bc1b0beec0a Mon Sep 17 00:00:00 2001
+From: Lior Weintraub <liorw@pliops.com>
+Date: Thu, 11 May 2023 15:22:04 +0300
+Subject: [PATCH] pcomc660-ast2600.patch
 
 ---
- arch/arm/boot/dts/aspeed-g6.dtsi           |   20 +
+ arch/arm/boot/dts/aspeed-g6.dtsi           |   10 +
  arch/arm/boot/dts/pcomc660-ast2600.dts     |  513 +++++++++
  drivers/hwmon/Kconfig                      |   11 +
  drivers/hwmon/Makefile                     |    1 +
@@ -12,20 +12,19 @@ Subject: [PATCH] 2021/11/18 Add Pcom-C660-AST2600 support.
  drivers/pinctrl/aspeed/pinctrl-aspeed-g6.c |   27 +-
  drivers/pinctrl/aspeed/pinctrl-aspeed.c    |   54 +
  drivers/pinctrl/aspeed/pinctrl-aspeed.h    |    3 +
- drivers/usb/host/ehci-hcd.c                |   35 +-
- drivers/usb/host/ehci.h                    |    5 +-
- 10 files changed, 1808 insertions(+), 24 deletions(-)
+ drivers/usb/host/ehci.h                    |    4 +-
+ 9 files changed, 1779 insertions(+), 7 deletions(-)
  create mode 100644 arch/arm/boot/dts/pcomc660-ast2600.dts
  create mode 100644 drivers/hwmon/aspeed-g6-pwm-tacho.c
 
 diff --git a/arch/arm/boot/dts/aspeed-g6.dtsi b/arch/arm/boot/dts/aspeed-g6.dtsi
-index 02e54fb13815..9ab2871f82e8 100644
+index ebbcfe445d9c..2263e6d26c33 100644
 --- a/arch/arm/boot/dts/aspeed-g6.dtsi
 +++ b/arch/arm/boot/dts/aspeed-g6.dtsi
-@@ -304,6 +304,16 @@
+@@ -323,6 +323,16 @@
  			#size-cells = <1>;
  			ranges;
- 
+
 +			pwm_tacho: pwm-tacho-controller@1e610000 {
 +				compatible = "aspeed,ast2600-pwm-tacho";
 +				#address-cells = <1>;
@@ -36,29 +35,12 @@ index 02e54fb13815..9ab2871f82e8 100644
 +				status = "disabled";
 +			};
 +
- 			syscon: syscon@1e6e2000 {
- 				compatible = "aspeed,ast2600-scu", "syscon", "simple-mfd";
- 				reg = <0x1e6e2000 0x1000>;
-@@ -384,6 +394,16 @@
- 				status = "disabled";
- 			};
- 
-+			video: video@1e700000 {
-+				compatible = "aspeed,ast2600-video-engine";
-+				reg = <0x1e700000 0x1000>;
-+				clocks = <&syscon ASPEED_CLK_GATE_VCLK>,
-+					 <&syscon ASPEED_CLK_GATE_ECLK>;
-+				clock-names = "vclk", "eclk";
-+				interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
-+				status = "disabled";
-+			};
-+
- 			gpio0: gpio@1e780000 {
- 				#gpio-cells = <2>;
- 				gpio-controller;
+ 			hace: crypto@1e6d0000 {
+ 				compatible = "aspeed,ast2600-hace";
+ 				reg = <0x1e6d0000 0x200>;
 diff --git a/arch/arm/boot/dts/pcomc660-ast2600.dts b/arch/arm/boot/dts/pcomc660-ast2600.dts
 new file mode 100644
-index 000000000000..06df6c3099f6
+index 000000000000..847a60ca42ee
 --- /dev/null
 +++ b/arch/arm/boot/dts/pcomc660-ast2600.dts
 @@ -0,0 +1,513 @@
@@ -75,7 +57,7 @@ index 000000000000..06df6c3099f6
 +	compatible = "aspeed,ast2600";
 +
 +	aliases {
-+		serial0 = &uart1;	
++		serial0 = &uart1;
 +		serial4 = &uart5;
 +	};
 +
@@ -87,7 +69,7 @@ index 000000000000..06df6c3099f6
 +		device_type = "memory";
 +		reg = <0x80000000 0x80000000>;
 +	};
-+	
++
 +	reserved-memory {
 +		#address-cells = <1>;
 +		#size-cells = <1>;
@@ -105,14 +87,14 @@ index 000000000000..06df6c3099f6
 +			alignment = <0x01000000>;
 +			compatible = "shared-dma-pool";
 +			reusable;
-+		};	
++		};
 +	};
-+	
++
 +	iio-hwmon {
 +		compatible = "iio-hwmon";
 +		io-channels = <&adc0 0>, <&adc0 1>, <&adc0 2>, <&adc0 5>, <&adc0 6>;
 +	};
-+	
++
 +	leds {
 +		compatible = "gpio-leds";
 +		bmc_alive {
@@ -121,7 +103,7 @@ index 000000000000..06df6c3099f6
 +			linux,default-trigger = "timer";
 +			led-pattern = <1000 1000>;
 +		};
-+	};	
++	};
 +};
 +
 +&adc0 {
@@ -130,15 +112,15 @@ index 000000000000..06df6c3099f6
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&pinctrl_adc0_default &pinctrl_adc1_default
 +				 &pinctrl_adc2_default &pinctrl_adc5_default
-+				 &pinctrl_adc6_default>;	
++				 &pinctrl_adc6_default>;
 +};
 +
 +&gpio0 {
-+ 	status = "okay";
++	status = "okay";
 +	/* Enable GPIOP0 and GPIOP2 pass-through by default */
 +	pinctrl-names = "pass-through";
 +	pinctrl-0 = <&pinctrl_thru0_default
-+			&pinctrl_thru1_default>; 
++			&pinctrl_thru1_default>;
 +
 +	port80h-group-num = /bits/ 8 <7>;
 +
@@ -211,7 +193,7 @@ index 000000000000..06df6c3099f6
 +
 +&mdio2 {
 +	status = "disabled";
-+	
++
 +	ethphy2: ethernet-phy@0 {
 +		compatible = "ethernet-phy-ieee802.3-c22";
 +		reg = <0>;
@@ -299,22 +281,22 @@ index 000000000000..06df6c3099f6
 +			};
 +
 +			u-boot-env@e0000 {
-+				reg = <0xe0000 0x20000>; // 128KB
++				reg = <0xe0000 0x20000>;
 +				label = "u-boot-env";
 +			};
 +
 +			kernel@100000 {
-+				reg = <0x100000 0x600000>; // 9MB
++				reg = <0x100000 0x600000>;
 +				label = "kernel";
 +			};
 +
 +			rofs@600000 {
-+				reg = <0x600000 0x1D00000>; // 32MB
++				reg = <0x600000 0x1D00000>;
 +				label = "rofs";
 +			};
 +
 +			rwfs@1D00000 {
-+				reg = <0x1D00000 0x300000>; // 22MB
++				reg = <0x1D00000 0x3E30000>;
 +				label = "rwfs";
 +			};
 +		};
@@ -440,8 +422,8 @@ index 000000000000..06df6c3099f6
 +			reg = <9>;
 +			type = <PCA955X_TYPE_GPIO>;
 +		};
-+	};	
-+	
++	};
++
 +};
 +
 +&i2c6 {
@@ -501,9 +483,9 @@ index 000000000000..06df6c3099f6
 +	status = "okay";
 +	aspeed,pwm-outputs = <2>;
 +	pinctrl-names = "default";
-+	pinctrl-0 =    <&pinctrl_pwm12g1_default 
-+			&pinctrl_tach0_default			
-+			&pinctrl_pwm13g1_default			
++	pinctrl-0 =    <&pinctrl_pwm12g1_default
++			&pinctrl_tach0_default
++			&pinctrl_pwm13g1_default
 +			&pinctrl_tach1_default>;
 +
 +	fan@0 {
@@ -576,13 +558,13 @@ index 000000000000..06df6c3099f6
 +
 +
 diff --git a/drivers/hwmon/Kconfig b/drivers/hwmon/Kconfig
-index 91d287afa326..ce899b6bc7c3 100644
+index d3bccc8176c5..51d551a09dce 100644
 --- a/drivers/hwmon/Kconfig
 +++ b/drivers/hwmon/Kconfig
-@@ -400,6 +400,17 @@ config SENSORS_ASPEED
+@@ -403,6 +403,17 @@ config SENSORS_ASPEED
  	  This driver can also be built as a module. If so, the module
  	  will be called aspeed_pwm_tacho.
- 
+
 +config SENSORS_ASPEED_G6
 +	tristate "ASPEED AST2600 PWM and Fan tach driver"
 +	depends on THERMAL || THERMAL=n
@@ -598,10 +580,10 @@ index 91d287afa326..ce899b6bc7c3 100644
  	tristate "Attansic ATXP1 VID controller"
  	depends on I2C
 diff --git a/drivers/hwmon/Makefile b/drivers/hwmon/Makefile
-index 5fcc3f859f1e..0d1a94b41ee4 100644
+index 11d076cad8a2..55ddb02c7a40 100644
 --- a/drivers/hwmon/Makefile
 +++ b/drivers/hwmon/Makefile
-@@ -52,6 +52,7 @@ obj-$(CONFIG_SENSORS_ARM_SCPI)	+= scpi-hwmon.o
+@@ -54,6 +54,7 @@ obj-$(CONFIG_SENSORS_ARM_SCPI)	+= scpi-hwmon.o
  obj-$(CONFIG_SENSORS_AS370)	+= as370-hwmon.o
  obj-$(CONFIG_SENSORS_ASC7621)	+= asc7621.o
  obj-$(CONFIG_SENSORS_ASPEED)	+= aspeed-pwm-tacho.o
@@ -1779,7 +1761,7 @@ index 000000000000..f9bfc83b32fe
 +MODULE_DESCRIPTION("ASPEED PWM and Fan Tachometer device driver");
 +MODULE_LICENSE("GPL");
 diff --git a/drivers/pinctrl/aspeed/pinctrl-aspeed-g6.c b/drivers/pinctrl/aspeed/pinctrl-aspeed-g6.c
-index a3fa03bcd9a3..2518c553a59d 100644
+index 80838dc54b3a..5acd53c3c5a0 100644
 --- a/drivers/pinctrl/aspeed/pinctrl-aspeed-g6.c
 +++ b/drivers/pinctrl/aspeed/pinctrl-aspeed-g6.c
 @@ -776,7 +776,7 @@ SSSF_PIN_DECL(AC23, GPIOO7, PWM7, SIG_DESC_SET(SCU41C, 23));
@@ -1820,7 +1802,7 @@ index a3fa03bcd9a3..2518c553a59d 100644
  
  #define AE15 172
  SSSF_PIN_DECL(AE15, GPIOV4, SIOPWRGD, SIG_DESC_SET(SCU434, 12));
-@@ -2727,12 +2727,29 @@ static struct aspeed_pinctrl_data aspeed_g6_pinctrl_data = {
+@@ -2726,12 +2726,29 @@ static struct aspeed_pinctrl_data aspeed_g6_pinctrl_data = {
  	.nconfmaps = ARRAY_SIZE(aspeed_g6_pin_config_map),
  };
  
@@ -1851,7 +1833,7 @@ index a3fa03bcd9a3..2518c553a59d 100644
  };
  
 diff --git a/drivers/pinctrl/aspeed/pinctrl-aspeed.c b/drivers/pinctrl/aspeed/pinctrl-aspeed.c
-index 9bbfe5c14b36..2e9359d4d0a0 100644
+index 5a12fc7cf91f..c1c4cd87303e 100644
 --- a/drivers/pinctrl/aspeed/pinctrl-aspeed.c
 +++ b/drivers/pinctrl/aspeed/pinctrl-aspeed.c
 @@ -439,6 +439,60 @@ int aspeed_gpio_request_enable(struct pinctrl_dev *pctldev,
@@ -1929,110 +1911,11 @@ index 4dcde3bc29c8..bd497c20a15f 100644
  int aspeed_pinctrl_probe(struct platform_device *pdev,
  		struct pinctrl_desc *pdesc,
  		struct aspeed_pinctrl_data *pdata);
-diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
-index 6793fd99c1cb..231b5da46194 100644
---- a/drivers/usb/host/ehci-hcd.c
-+++ b/drivers/usb/host/ehci-hcd.c
-@@ -634,7 +634,18 @@ static int ehci_run (struct usb_hcd *hcd)
- 	/* Wait until HC become operational */
- 	ehci_readl(ehci, &ehci->regs->command);	/* unblock posted writes */
- 	msleep(5);
--	rc = ehci_handshake(ehci, &ehci->regs->status, STS_HALT, 0, 100 * 1000);
-+
-+	/* For Aspeed, STS_HALT also depends on ASS/PSS status.
-+	 * Skip this check on startup.
-+	 */
-+	//if (ehci->is_aspeed)
-+	//{
-+		rc = ehci_handshake(ehci, &ehci->regs->command, CMD_RUN,
-+				    1, 100 * 1000);
-+	//}
-+	//else
-+	//	rc = ehci_handshake(ehci, &ehci->regs->status, STS_HALT,
-+	//			    0, 100 * 1000);
- 
- 	up_write(&ehci_cf_port_reset_rwsem);
- 
-@@ -703,8 +714,7 @@ EXPORT_SYMBOL_GPL(ehci_setup);
- static irqreturn_t ehci_irq (struct usb_hcd *hcd)
- {
- 	struct ehci_hcd		*ehci = hcd_to_ehci (hcd);
--	u32			status, current_status, masked_status, pcd_status = 0;
--	u32			cmd;
-+	u32			status, masked_status, pcd_status = 0, cmd;
- 	int			bh;
- 	unsigned long		flags;
- 
-@@ -716,22 +726,19 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
- 	 */
- 	spin_lock_irqsave(&ehci->lock, flags);
- 
--	status = 0;
--	current_status = ehci_readl(ehci, &ehci->regs->status);
--restart:
-+	status = ehci_readl(ehci, &ehci->regs->status);
- 
- 	/* e.g. cardbus physical eject */
--	if (current_status == ~(u32) 0) {
-+	if (status == ~(u32) 0) {
- 		ehci_dbg (ehci, "device removed\n");
- 		goto dead;
- 	}
--	status |= current_status;
- 
- 	/*
- 	 * We don't use STS_FLR, but some controllers don't like it to
- 	 * remain on, so mask it out along with the other status bits.
- 	 */
--	masked_status = current_status & (INTR_MASK | STS_FLR);
-+	masked_status = status & (INTR_MASK | STS_FLR);
- 
- 	/* Shared IRQ? */
- 	if (!masked_status || unlikely(ehci->rh_state == EHCI_RH_HALTED)) {
-@@ -741,12 +748,6 @@ static irqreturn_t ehci_irq (struct usb_hcd *hcd)
- 
- 	/* clear (just) interrupts */
- 	ehci_writel(ehci, masked_status, &ehci->regs->status);
--
--	/* For edge interrupts, don't race with an interrupt bit being raised */
--	current_status = ehci_readl(ehci, &ehci->regs->status);
--	if (current_status & INTR_MASK)
--		goto restart;
--
- 	cmd = ehci_readl(ehci, &ehci->regs->command);
- 	bh = 0;
- 
-@@ -1005,7 +1006,7 @@ ehci_endpoint_disable (struct usb_hcd *hcd, struct usb_host_endpoint *ep)
- 			start_unlink_async(ehci, qh);
- 		else
- 			start_unlink_intr(ehci, qh);
--		fallthrough;
-+		/* FALL THROUGH */
- 	case QH_STATE_COMPLETING:	/* already in unlinking */
- 	case QH_STATE_UNLINK:		/* wait for hw to finish? */
- 	case QH_STATE_UNLINK_WAIT:
-@@ -1022,7 +1023,7 @@ ehci_endpoint_disable (struct usb_hcd *hcd, struct usb_host_endpoint *ep)
- 			qh_destroy(ehci, qh);
- 			break;
- 		}
--		fallthrough;
-+		/* fall through */
- 	default:
- 		/* caller was supposed to have unlinked any requests;
- 		 * that's not our job.  just leak this memory.
 diff --git a/drivers/usb/host/ehci.h b/drivers/usb/host/ehci.h
-index eabf22a78eae..bf52a9624dfd 100644
+index ad3f13a3eaf1..60c9d37b753f 100644
 --- a/drivers/usb/host/ehci.h
 +++ b/drivers/usb/host/ehci.h
-@@ -218,6 +218,7 @@ struct ehci_hcd {			/* one per controller */
- 	unsigned		frame_index_bug:1; /* MosChip (AKA NetMos) */
- 	unsigned		need_oc_pp_cycle:1; /* MPC834X port power */
- 	unsigned		imx28_write_fix:1; /* For Freescale i.MX28 */
-+	unsigned		is_aspeed:1;
- 
- 	/* required for usb32 quirk */
- 	#define OHCI_CTRL_HCFS          (3 << 6)
-@@ -255,7 +256,7 @@ struct ehci_hcd {			/* one per controller */
+@@ -258,7 +258,7 @@ struct ehci_hcd {			/* one per controller */
  	struct list_head	tt_list;
  
  	/* platform-specific data -- must come last */
@@ -2041,7 +1924,7 @@ index eabf22a78eae..bf52a9624dfd 100644
  };
  
  /* convert between an HCD pointer and the corresponding EHCI_HCD */
-@@ -460,7 +461,7 @@ struct ehci_iso_sched {
+@@ -463,7 +463,7 @@ struct ehci_iso_sched {
  	struct list_head	td_list;
  	unsigned		span;
  	unsigned		first_packet;
