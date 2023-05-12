@@ -7,7 +7,7 @@ PROVIDES += "virtual/kernel"
 KCONFIG_MODE="--alldefconfig"
 
 KSRC ?= "git://github.com/openbmc/linux;protocol=git;branch=${KBRANCH}"
-SRC_URI = "${KSRC}"
+SRC_URI += " ${KSRC}"
 SRC_URI += " file://defconfig"
 
 LINUX_VERSION_EXTENSION ?= "-${SRCREV}"
