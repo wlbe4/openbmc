@@ -22,8 +22,17 @@ EXTRA_USERS_PARAMS = " \
 
 require conf/machine/include/obmc-bsp-common.inc
 
+CORE_IMAGE_EXTRA_INSTALL += "mctp"
+
 FLASH_SIZE = "32768"
 FLASH_KERNEL_OFFSET = "1280"
 FLASH_UBOOT_OFFSET = "0"
 FLASH_ROFS_OFFSET = "6144"
 FLASH_RWFS_OFFSET = "29696"
+
+# Use different layout and sizes when build for qemuarm
+FLASH_SIZE:qemuarm              = "1048576"
+UBOOT_IMG_SIZE:qemuarm          = "789100"
+FLASH_UBOOT_ENV_OFFSET:qemuarm  = "776"
+FLASH_ROFS_OFFSET:qemuarm       = "10240"
+FLASH_RWFS_OFFSET:qemuarm       = "61440"
