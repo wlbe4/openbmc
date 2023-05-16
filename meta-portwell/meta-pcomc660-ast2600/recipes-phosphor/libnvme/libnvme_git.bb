@@ -17,9 +17,6 @@ PR = "r1"
 
 SRC_URI = "git://github.com/linux-nvme/libnvme;branch=master;protocol=https"
 
-#SYSTEMD_SERVICE:${PN} = "mctp-demux.service \
-#                         mctp-demux.socket \
-#                        "
 S = "${WORKDIR}/git"
 
 inherit systemd
@@ -28,18 +25,7 @@ inherit meson gettext deploy
 
 EXTRA_OEMESON = "-Dpython=disabled -Ddocs-build=false"
 
-do_compile() {
-#    make -C ${S}
-    echo "Skip compile"
-}
-do_package() {
-    echo "Skip package"
-}
-do_install() {
-#        make -C ${S} install
-        install -D -m 0755 ${S}/.build/examples/mi-mctp ${D}/usr/bin
-#        install -d ${D}${sysconfdir}/default
-#        install -m 0644 ${WORKDIR}/default ${D}${sysconfdir}/default/mctp
+do_install:append() {
+        install -D -m 0755 ${WORKDIR}/build/examples/mi-mctp ${D}/usr/bin
 }
 
-#CONFFILES:${PN} = "${sysconfdir}/default/mctp"
