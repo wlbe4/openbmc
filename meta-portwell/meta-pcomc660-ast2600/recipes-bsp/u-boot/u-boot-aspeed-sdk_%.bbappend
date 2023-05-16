@@ -1,4 +1,4 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"
 SRCREV = "44a8c618c1215e0faac0f335f0afd56ed4240e76"
-SRC_URI += "file://0001-2021-11-18-Add-PCOM-C660-AST2600-u-boot-support.patch"
+SRC_URI += " file://0001-2021-11-18-Add-PCOM-C660-AST2600-u-boot-support.patch"
 SOCSEC_SIGN_ENABLE = "0"
