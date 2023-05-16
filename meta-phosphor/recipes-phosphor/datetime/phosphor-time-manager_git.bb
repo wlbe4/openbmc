@@ -8,11 +8,11 @@ DEPENDS += "sdbusplus"
 DEPENDS += "${PYTHON_PN}-sdbus++-native"
 DEPENDS += "phosphor-logging"
 DEPENDS += "phosphor-dbus-interfaces"
-SRCREV = "e81151feedafd84075d68183f5fc78b5b7058b1b"
+SRCREV = "ea220361b8da915b093a98aa3ad19061b6c2ef88"
 PV = "1.0+git${SRCPV}"
 PR = "r1"
 
-SRC_URI += "git://github.com/openbmc/phosphor-time-manager;branch=master;protocol=https"
+SRC_URI = "git://github.com/openbmc/phosphor-time-manager;branch=master;protocol=https"
 
 S = "${WORKDIR}/git"
 

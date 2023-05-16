@@ -18,11 +18,11 @@ DEPENDS += "cli11"
 DEPENDS += "libmapper"
 DEPENDS += "systemd"
 DEPENDS += "phosphor-ipmi-host"
-SRCREV = "2c95dd1ab69e1b7dcfd2a456d6b1a28e9df363f6"
+SRCREV = "099fb097d1671bc057a0b149de58b8b66c14e9a2"
 PV = "1.0+git${SRCPV}"
 PR = "r1"
 
-SRC_URI += "git://github.com/openbmc/phosphor-net-ipmid;branch=master;protocol=https"
+SRC_URI = "git://github.com/openbmc/phosphor-net-ipmid;branch=master;protocol=https"
 
 S = "${WORKDIR}/git"
 # install parameterized service and socket files
