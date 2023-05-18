@@ -1,2 +1,4 @@
 Common targets are:
      obmc-phosphor-image
+For running the image with QEMU:
+     runqemu slirp nographic
